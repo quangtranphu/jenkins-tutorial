@@ -49,7 +49,7 @@ pipeline {
             steps {
                 scripts{
                     echo 'Delete local image'
-                    sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest|| true'
+                    sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true'
                 }
             }
         }
