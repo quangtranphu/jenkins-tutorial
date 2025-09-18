@@ -44,5 +44,14 @@ pipeline {
                 echo 'Running a script to trigger pull and start a docker container'
             }
         }
+
+        stage('Clean up'){
+            steps {
+                scripts{
+                    echo 'Delete local image'
+                    sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest|| true'
+                }
+            }
+        }
     }
 }
