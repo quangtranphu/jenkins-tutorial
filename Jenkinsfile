@@ -47,7 +47,7 @@ pipeline {
 
         stage('Clean up'){
             steps {
-                scripts{
+                script {
                     echo 'Delete local image'
                     sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true'
                 }
