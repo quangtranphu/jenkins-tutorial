@@ -1,0 +1,18 @@
+# Stage 1: lấy docker CLI binary từ image chính thức
+FROM docker:27-cli AS dockercli
+
+# Stage 2: Jenkins base (dùng bản slim để nhẹ hơn)
+FROM jenkins/jenkins:lts-slim-jdk17
+
+USER root
+
+# Copy docker CLI từ stage 1 sang Jenkins image
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+
+# Optional: cài thêm gói cơ bản (git, curl...) nếu pipeline cần
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Quay lại user jenkins để chạy an toàn
+USER jenkins
