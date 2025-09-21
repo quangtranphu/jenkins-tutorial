@@ -61,7 +61,7 @@ pipeline {
                         // Upgrade/install Helm release
                         sh """
                             helm upgrade --install hpp ./helm-charts/hpp \
-                                --namespace ${nameSpace}
+                                --namespace ${nameSpace} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
                                 --set image.pullPolicy=${pullPolicy}
