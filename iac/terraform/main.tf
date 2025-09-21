@@ -51,6 +51,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
     preemptible  = true
     machine_type = "e2-standard-4"
     disk_size_gb = 30
+    image_type = "COS_CONTAINERD"
 
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
     # service_account = google_service_account.default.email
@@ -66,4 +67,43 @@ resource "google_storage_bucket" "quangtp-bucket" {
   force_destroy = true
 
   uniform_bucket_level_access = true
+}
+
+resource "google_compute_instance" "jenkins_mlops1" {
+  name         = var.instance_name
+  machine_type = var.machine_type
+  zone         = var.zone
+
+  allow_stopping_for_update = true
+
+  boot_disk {
+    initialize_params {
+      image = var.boot_disk_image
+      size = var.boot_disk_size
+    }
+  }
+
+  network_interface {
+    network = "default"
+
+    access_config {
+      // Ephemeral public IP
+    }
+  }
+
+  metadata = {
+    ssh-keys = var.ssh_keys
+  }
+}
+
+resource "google_compute_firewall" "firewall_mlops1" {
+  name    = var.firewall_name
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8081", "50000"]
+  }
+
+  source_ranges = ["0.0.0.0/0"] // Allow all traffic
 }
