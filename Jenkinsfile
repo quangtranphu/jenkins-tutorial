@@ -58,8 +58,7 @@ pipeline {
                         // Upgrade/install Helm release
                         sh """
                             helm upgrade --install hpp ./helm-charts/hpp \
-                                --namespace model-serving \
-                                --create-namespace
+                                --namespace model-serving
                         """
                     }
                 }
