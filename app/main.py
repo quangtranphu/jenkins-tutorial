@@ -10,7 +10,7 @@ from utils.logging import logger
 # Creating FastAPI instance
 app = FastAPI()
 # Loading model with default path models/model.pkl
-clf = joblib.load(os.environ.get("MODEL_PATH", "models/model.pkl"))
+clf = joblib.load("./models/model.pkl")
 
 
 # Creating an endpoint to receive the data

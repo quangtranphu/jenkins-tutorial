@@ -10,7 +10,10 @@ pipeline {
 
     environment{
         registry = 'quangtp/house-price-prediction-api'
-        registryCredential = 'dockerhub'      
+        registryCredential = 'dockerhub'
+        nameSpace = 'model-serving'
+        helmChartPath = './helm-charts/hpp'   
+        pullPolicy = 'Always'
     }
 
     stages {
@@ -26,20 +29,20 @@ pipeline {
         //         sh 'pip install -r requirements.txt'
         //     }
         // }
-        // stage('Build') {
-        //     steps {
-        //         script {
-        //             echo 'Building image for deployment..'
-        //             dockerImage = docker.build registry + ":$BUILD_NUMBER" 
-        //             echo 'Pushing image to dockerhub..'
-        //             docker.withRegistry( '', registryCredential ) {
-        //                 dockerImage.push()
-        //                 dockerImage.push('latest')
-        //             }
-        //         }
-        //     }
-        // }
-        stage('Deploy') {
+        stage('Build docker image') {
+            steps {
+                script {
+                    echo 'Building image for deployment..'
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+                    echo 'Pushing image to dockerhub..'
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push() // Push tag build-number
+                        dockerImage.push('latest') // Push tag latest
+                    }
+                }
+            }
+        }
+        stage('Deploy to K8s') {
             agent {
                 kubernetes {
                     cloud 'quangtp-cluster-1' // Tên cloud Kubernetes trong Jenkins
@@ -58,8 +61,12 @@ pipeline {
                         // Upgrade/install Helm release
                         sh """
                             helm upgrade --install hpp ./helm-charts/hpp \
-                                --namespace model-serving
+                                --namespace ${nameSpace}
+                                --set image.repository=${registry} \
+                                --set image.tag=${BUILD_NUMBER} \
+                                --set image.pullPolicy=${pullPolicy}
                         """
+                        sh "kubectl rollout restart deployment hpp -n ${namespace}"
                     }
                 }
             }
