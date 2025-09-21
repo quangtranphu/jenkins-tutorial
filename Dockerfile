@@ -5,7 +5,7 @@ FROM python:3.8-slim
 WORKDIR /app
 
 # Copy necessary files to our app
-COPY ./main.py /app
+COPY ./app /app
 
 COPY ./requirements.txt /app
 
