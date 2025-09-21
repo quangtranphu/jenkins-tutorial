@@ -42,6 +42,7 @@ pipeline {
         stage('Deploy') {
             agent {
                 kubernetes {
+                    cloud 'quangtp-cluster-1'
                     containerTemplate {
                         name 'helm' // Name of the container to be used for helm upgrade
                         image 'quangtp/custom-jenkins:latest' // The image containing helm
