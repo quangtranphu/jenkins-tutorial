@@ -17,7 +17,8 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image 'python:3.8' 
+                    image 'python:3.8-slim' 
+                    args '-u root:root' //run image with root
                 }
             }
             steps {
