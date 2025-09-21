@@ -1,11 +1,14 @@
 version: '3.8'
 services:
   jenkins:
-    image: custom-jenkins:latest
+    build:
+      context: ./custom_jenkins/
+      dockerfile: Dockerfile-custom
+    image: quangtp/custom-jenkins:latest 
     container_name: jenkins
     restart: unless-stopped
-    privileged: true
-    user: root
+    # privileged: true
+    # user: root
     ports:
       - 8081:8080
       - 50000:50000

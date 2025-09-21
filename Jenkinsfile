@@ -39,9 +39,21 @@ pipeline {
             }
         }
         stage('Deploy') {
+            agent {
+                kubernetes {
+                    containerTemplate {
+                        name 'helm' // Name of the container to be used for helm upgrade
+                        image 'quangtp/custom-jenkins:latest' // The image containing helm
+                        alwaysPullImage false // Only pull custom jenkins image if not present
+                    }
+                }
+            }
             steps {
-                echo 'Deploying models..'
-                echo 'Running a script to trigger pull and start a docker container'
+                script {
+                    container('helm') {
+                        sh("helm upgrade --install hpp ./helm-charts/hpp --namespace model-serving")
+                    }
+                }
             }
         }
 
