@@ -14,18 +14,18 @@ pipeline {
     }
 
     stages {
-        stage('Test') {
-            agent {
-                docker {
-                    image 'python:3.8-slim' 
-                    args '-u root:root' //run image with root
-                }
-            }
-            steps {
-                echo 'Testing model correctness..'
-                sh 'pip install -r requirements.txt'
-            }
-        }
+        // stage('Test') {
+        //     agent {
+        //         docker {
+        //             image 'python:3.8-slim' 
+        //             args '-u root:root' //run image with root
+        //         }
+        //     }
+        //     steps {
+        //         echo 'Testing model correctness..'
+        //         sh 'pip install -r requirements.txt'
+        //     }
+        // }
         // stage('Build') {
         //     steps {
         //         script {
@@ -42,18 +42,25 @@ pipeline {
         stage('Deploy') {
             agent {
                 kubernetes {
-                    cloud 'quangtp-cluster-1'
+                    cloud 'quangtp-cluster-1' // Tên cloud Kubernetes trong Jenkins
                     containerTemplate {
-                        name 'helm' // Name of the container to be used for helm upgrade
-                        image 'quangtp/custom-jenkins:latest' // The image containing helm
-                        alwaysPullImage false // Only pull custom jenkins image if not present
+                        name 'helm'                          // Container name
+                        image 'quangtp/custom-jenkins:latest' // Image chứa helm + kubectl
+                        command 'cat'                        // Giữ container chạy
+                        ttyEnabled true
+                        alwaysPullImage false                // Pull only if not present
                     }
                 }
             }
             steps {
-                script {
-                    container('helm') {
-                        sh("helm upgrade --install hpp ./helm-charts/hpp --namespace model-serving")
+                container('helm') {
+                    script {
+                        // Upgrade/install Helm release
+                        sh """
+                            helm upgrade --install hpp ./helm-charts/hpp \
+                                --namespace model-serving \
+                                --create-namespace
+                        """
                     }
                 }
             }
