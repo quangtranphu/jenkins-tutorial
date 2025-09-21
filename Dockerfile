@@ -9,6 +9,8 @@ COPY ./app /app
 
 COPY ./requirements.txt /app
 
+COPY ./tests /app/tests
+
 COPY ./models /app/models
 
 # Set MODEL_DIR env variable
