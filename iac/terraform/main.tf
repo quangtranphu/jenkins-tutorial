@@ -102,7 +102,7 @@ resource "google_compute_firewall" "firewall_mlops1" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8081", "50000"]
+    ports    = ["8081", "50000", "80", "443"]
   }
 
   source_ranges = ["0.0.0.0/0"] // Allow all traffic
