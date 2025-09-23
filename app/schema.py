@@ -5,11 +5,11 @@ from pydantic import BaseModel
 class HouseInfo(BaseModel):
     MSSubClass: int = 60
     MSZoning: str = "RL"
-    LotArea: int = 7844
+    LotArea: int = 7845
     LotConfig: str = "Inside"
     BldgType: str = "1Fam"
     OverallCond: int = 7
-    YearBuilt: int = 1978
+    YearBuilt: int = 1936
     YearRemodAdd: int = 1978
     Exterior1st: str = "HdBoard"
     BsmtFinSF2: float = 0.0

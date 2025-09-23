@@ -161,3 +161,9 @@ cython_debug/
 
 jenkins_tut
 jenkins_tut.pub
+
+.terraform/
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
