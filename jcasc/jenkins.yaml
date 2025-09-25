@@ -1,7 +1,6 @@
 jenkins:
   systemMessage: "Configured by JCasC with Kubernetes Clouds (dev & prod)"
 
-
 credentials:
   system:
     domainCredentials:
