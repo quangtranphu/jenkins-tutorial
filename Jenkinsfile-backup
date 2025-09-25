@@ -14,7 +14,7 @@ pipeline {
         nameSpace = 'model-serving'
         helmChartPath = './helm-charts/hpp'   
         pullPolicy = 'Always'
-        context = 'inner-replica-469607-h9-new-gke'
+        context='inner-replica-469607-h9-new-gke'
     }
 
     stages {
@@ -45,16 +45,21 @@ pipeline {
         }
         stage('Deploy to K8s') {
             agent {
-                docker {
-                    image 'quangtp/custom-jenkins:latest'  // Image kubectl + helm
-                    alwaysPull false
+                kubernetes {
+                    cloud 'quangtp-cluster-1' // Tên cloud Kubernetes trong Jenkins
+                    containerTemplate {
+                        name 'helm'                          // Container name
+                        image 'quangtp/custom-jenkins:latest' // Image chứa helm + kubectl
+                        command 'cat'                        // Giữ container chạy
+                        ttyEnabled true
+                        alwaysPullImage false                // Pull only if not present
+                    }
                 }
             }
             steps {
-                // Inject kubeconfig from Jenkins Credentials
-                withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+                container('helm') {
                     script {
-                        // Deploy to cluster
+                        // Upgrade/install Helm release
                         sh """
                             helm upgrade --install hpp ./helm-charts/hpp \
                                 --namespace ${nameSpace} \
@@ -63,9 +68,7 @@ pipeline {
                                 --set image.tag=${BUILD_NUMBER} \
                                 --set image.pullPolicy=${pullPolicy}
                         """
-
-                        // Restart deployment on cluster
-                        sh "kubectl --context=${context} rollout restart deployment hpp -n ${nameSpace}"
+                        sh "kubectl rollout restart deployment hpp -n ${namespace}"
                     }
                 }
             }
