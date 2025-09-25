@@ -1,10 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'quangtp/custom-jenkins:latest'  // Image chứa kubectl + helm
+            reuseNode true       // Giữ workspace giữa các stage
+            alwaysPull false     // Có thể bật true nếu muốn luôn pull image mới
+        }
+    }
 
     options{
-        // Max number of build logs to keep and days to keep
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
-        // Enable timestamp at each job in the pipeline
         timestamps()
     }
 
@@ -18,18 +22,12 @@ pipeline {
     }
 
     stages {
-        // stage('Test') {
-        //     agent {
-        //         docker {
-        //             image 'python:3.8-slim' 
-        //             args '-u root:root' //run image with root
-        //         }
-        //     }
-        //     steps {
-        //         echo 'Testing model correctness..'
-        //         sh 'pip install -r requirements.txt'
-        //     }
-        // }
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build docker image') {
             steps {
                 script {
@@ -37,34 +35,25 @@ pipeline {
                     dockerImage = docker.build registry + ":$BUILD_NUMBER" 
                     echo 'Pushing image to dockerhub..'
                     docker.withRegistry( '', registryCredential ) {
-                        dockerImage.push() // Push tag build-number
-                        dockerImage.push('latest') // Push tag latest
+                        dockerImage.push() 
+                        dockerImage.push('latest')
                     }
                 }
             }
         }
+
         stage('Deploy to K8s') {
-            agent {
-                docker {
-                    image 'quangtp/custom-jenkins:latest'  // Image kubectl + helm
-                    alwaysPull false
-                }
-            }
             steps {
-                // Inject kubeconfig from Jenkins Credentials
                 withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
                     script {
-                        // Deploy to cluster
                         sh """
-                            helm upgrade --install hpp ./helm-charts/hpp \
+                            helm upgrade --install hpp ${helmChartPath} \
                                 --namespace ${nameSpace} \
                                 --kube-context=${context} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
                                 --set image.pullPolicy=${pullPolicy}
                         """
-
-                        // Restart deployment on cluster
                         sh "kubectl --context=${context} rollout restart deployment hpp -n ${nameSpace}"
                     }
                 }
@@ -74,8 +63,8 @@ pipeline {
         stage('Clean up'){
             steps {
                 script {
-                    echo 'Delete local image hehe'
-                    sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true'
+                    echo 'Delete local image'
+                    sh "docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true"
                 }
             }
         }
