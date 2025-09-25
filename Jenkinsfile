@@ -46,7 +46,8 @@ pipeline {
         stage('Deploy to K8s') {
             agent {
                 kubernetes {
-                    cloud 'quangtp-cluster-1' // Tên cloud Kubernetes trong Jenkins
+                    cloud '${K8S_CLOUD_NAME}' // Tên cloud Kubernetes trong Jenkins
+                    label '${K8S_AGENT_LABEL}'
                     containerTemplate {
                         name 'helm'                          // Container name
                         image 'quangtp/custom-jenkins:latest' // Image chứa helm + kubectl
@@ -63,10 +64,10 @@ pipeline {
                         sh """
                             helm upgrade --install hpp ./helm-charts/hpp \
                                 --namespace ${nameSpace} \
-                                --kube-context=${context} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
-                                --set image.pullPolicy=${pullPolicy}
+                                --set image.pullPolicy=${pullPolicy} \
+                                --kube-context=${context}
                         """
                         sh "kubectl rollout restart deployment hpp -n ${namespace}"
                     }

@@ -9,17 +9,18 @@ jenkins:
         containerCapStr: "10"
         jenkinsUrl: "${JENKINS_URL}"
         skipTlsVerify: false
+        serverCertificate: ${readFile:/var/jenkins_home/certs/ca.crt}
         credentialsId: "${K8S_CRED_ID}"
-        templates:
-          - name: "${K8S_AGENT_LABEL}"
-            label: "${K8S_AGENT_LABEL}"
-            serviceAccount: "${K8S_SERVICE_ACCOUNT}"
-            containers:
-              - name: jnlp
-                image: "${K8S_AGENT_IMAGE}"
-                args: "^${computer.jnlpmac} ^${computer.name}"
-                ttyEnabled: true
-                workingDir: "/home/jenkins"
+        # templates:
+        #   - name: "${K8S_AGENT_LABEL}"
+        #     label: "${K8S_AGENT_LABEL}"
+        #     serviceAccount: "${K8S_SERVICE_ACCOUNT}"
+        #     containers:
+        #       - name: jnlp
+        #         image: "${K8S_AGENT_IMAGE}"
+        #         args: "^${computer.jnlpmac} ^${computer.name}"
+        #         ttyEnabled: true
+        #         workingDir: "/home/jenkins"
 
 credentials:
   system:
