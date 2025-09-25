@@ -19,14 +19,22 @@ pipeline {
         helmChartPath = './helm-charts/hpp'   
         pullPolicy = 'Always'
         context = 'inner-replica-469607-h9-new-gke'
+        gitRepo = 'https://github.com/quangtranphu/jenkins-tutorial.git'
+        gitBranch = 'main'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout repo trực tiếp trong container
-                checkout scm
-                sh 'ls -la' // kiểm tra repo
+                dir("${env.WORKSPACE}") {
+                    // Xóa folder .git cũ nếu có, rồi clone trực tiếp trong container
+                    sh """
+                        rm -rf .git || true
+                        git clone ${gitRepo} .
+                        git checkout ${gitBranch}
+                    """
+                    sh 'ls -la' // Kiểm tra repo
+                }
             }
         }
 
