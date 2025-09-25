@@ -16,6 +16,7 @@ git push origin your_branch
 
 kubectl create ns model-serving
 kubectl create sa jenkins -n model-serving
+
 kubectl create clusterrolebinding model-serving-admin-binding \
   --clusterrole=admin \
   --serviceaccount=model-serving:jenkins \
