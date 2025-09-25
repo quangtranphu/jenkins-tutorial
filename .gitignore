@@ -167,3 +167,6 @@ jenkins_tut.pub
 .terraform.tfstate.lock.info
 terraform.tfstate
 terraform.tfstate.backup
+
+ca.crt
+jenkins-sa-token.yaml
