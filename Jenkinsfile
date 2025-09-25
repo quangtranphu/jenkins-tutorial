@@ -1,82 +1,84 @@
 pipeline {
-    agent {
-        docker {
-            image 'quangtp/custom-jenkins:latest'  // Image chứa kubectl + helm
-            reuseNode true       // Giữ workspace giữa các stage
-            alwaysPull false
-        }
-    }
+    agent any
 
-    options {
+    options{
+        // Max number of build logs to keep and days to keep
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
+        // Enable timestamp at each job in the pipeline
         timestamps()
     }
 
-    environment {
+    environment{
         registry = 'quangtp/house-price-prediction-api'
         registryCredential = 'dockerhub'
         nameSpace = 'model-serving'
         helmChartPath = './helm-charts/hpp'   
         pullPolicy = 'Always'
-        context = 'inner-replica-469607-h9-new-gke'
-        gitRepo = 'https://github.com/quangtranphu/jenkins-tutorial.git'
-        gitBranch = 'main'
+        context='inner-replica-469607-h9-new-gke'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                dir("${env.WORKSPACE}") {
-                    // Xóa folder .git cũ nếu có, rồi clone trực tiếp trong container
-                    sh """
-                        rm -rf .git || true
-                        git clone ${gitRepo} .
-                        git checkout ${gitBranch}
-                    """
-                    sh 'ls -la' // Kiểm tra repo
-                }
-            }
-        }
-
+        // stage('Test') {
+        //     agent {
+        //         docker {
+        //             image 'python:3.8-slim' 
+        //             args '-u root:root' //run image with root
+        //         }
+        //     }
+        //     steps {
+        //         echo 'Testing model correctness..'
+        //         sh 'pip install -r requirements.txt'
+        //     }
+        // }
         stage('Build docker image') {
             steps {
                 script {
-                    echo 'Building image for deployment...'
-                    dockerImage = docker.build("${registry}:${BUILD_NUMBER}")
-                    echo 'Pushing image to Docker Hub...'
-                    docker.withRegistry('', registryCredential) {
-                        dockerImage.push()
-                        dockerImage.push('latest')
+                    echo 'Building image for deployment..'
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+                    echo 'Pushing image to dockerhub..'
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push() // Push tag build-number
+                        dockerImage.push('latest') // Push tag latest
                     }
                 }
             }
         }
-
         stage('Deploy to K8s') {
+            agent {
+                kubernetes {
+                    cloud 'quangtp-cluster-1' // Tên cloud Kubernetes trong Jenkins
+                    containerTemplate {
+                        name 'helm'                          // Container name
+                        image 'quangtp/custom-jenkins:latest' // Image chứa helm + kubectl
+                        command 'cat'                        // Giữ container chạy
+                        ttyEnabled true
+                        alwaysPullImage false                // Pull only if not present
+                    }
+                }
+            }
             steps {
-                withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+                container('helm') {
                     script {
-                        echo "Deploying to cluster: ${context}"
+                        // Upgrade/install Helm release
                         sh """
-                            helm upgrade --install hpp ${helmChartPath} \
+                            helm upgrade --install hpp ./helm-charts/hpp \
                                 --namespace ${nameSpace} \
                                 --kube-context=${context} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
                                 --set image.pullPolicy=${pullPolicy}
                         """
-                        sh "kubectl --context=${context} rollout restart deployment hpp -n ${nameSpace}"
+                        sh "kubectl rollout restart deployment hpp -n ${namespace}"
                     }
                 }
             }
         }
 
-        stage('Clean up local Docker images') {
-            agent { label 'docker-host' } // chạy trên node có Docker daemon
+        stage('Clean up'){
             steps {
                 script {
-                    echo 'Deleting local Docker images...'
-                    sh "docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true"
+                    echo 'Delete local image hehe'
+                    sh 'docker rmi ${registry}:${BUILD_NUMBER} ${registry}:latest || true'
                 }
             }
         }

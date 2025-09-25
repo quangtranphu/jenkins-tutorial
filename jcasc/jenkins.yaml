@@ -1,5 +1,25 @@
 jenkins:
-  systemMessage: "Configured by JCasC with Kubernetes Clouds (dev & prod)"
+  systemMessage: "Configured by JCasC for external Jenkins with K8s Cloud"
+
+  clouds:
+    - kubernetes:
+        name: "${K8S_CLOUD_NAME}"
+        serverUrl: "${K8S_SERVER_URL}"
+        namespace: "${K8S_NAMESPACE}"
+        containerCapStr: "10"
+        jenkinsUrl: "${JENKINS_URL}"
+        skipTlsVerify: false
+        credentialsId: "${K8S_CRED_ID}"
+        templates:
+          - name: "${K8S_AGENT_LABEL}"
+            label: "${K8S_AGENT_LABEL}"
+            serviceAccount: "${K8S_SERVICE_ACCOUNT}"
+            containers:
+              - name: jnlp
+                image: "${K8S_AGENT_IMAGE}"
+                args: "^${computer.jnlpmac} ^${computer.name}"
+                ttyEnabled: true
+                workingDir: "/home/jenkins"
 
 credentials:
   system:
@@ -9,7 +29,7 @@ credentials:
           description: "Global credentials"
           specifications: []
         credentials:
-          # Git credentials
+          # GitHub/GitLab credentials
           - usernamePassword:
               scope: GLOBAL
               id: "github"
@@ -25,31 +45,9 @@ credentials:
               username: ${DOCKER_USER}
               password: ${DOCKER_PASSWORD}
 
-            # Kubernetes kubeconfig for K8s cluster
-#             - file:
-#                 scope: GLOBAL
-#                 id: "k8s-dev-kubeconfig"
-#                 description: "Kubeconfig for Dev cluster"
-#                 fileName: "config"
-#                 secretBytes: "${KUBECONFIG_DEV_BASE64}"
-
-# clouds:
-#   - kubernetes:
-#       name: "k8s-dev"
-#       serverUrl: "https://111.222.333.444:6443"   # API server Dev
-#       skipTlsVerify: false
-#       namespace: "jenkins"
-#       credentialsId: "k8s-dev-kubeconfig"
-#       jenkinsUrl: "http://jenkins:8080"
-#       containerCapStr: "10"
-#       retentionTimeout: 5
-#       templates:
-#         - name: "dev-agent"
-#           label: "k8s-dev"
-#           serviceAccount: "jenkins"
-#           containers:
-#             - name: "jnlp"
-#               image: "jenkins/inbound-agent:latest"
-#               args: "^${computer.jnlpmac} ^${computer.name}"
-#               ttyEnabled: true
-#               workingDir: "/home/jenkins"
+          # Kubernetes ServiceAccount token
+          - string:
+              scope: GLOBAL
+              id: "${K8S_CRED_ID}"
+              description: "Kubernetes ServiceAccount token"
+              secret: "${K8S_SA_TOKEN}"
