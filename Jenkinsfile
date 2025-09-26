@@ -48,7 +48,7 @@ pipeline {
                 kubernetes {
                     cloud '${K8S_CLOUD_NAME}' // Tên cloud Kubernetes trong Jenkins
                     label '${K8S_AGENT_LABEL}'
-                    serviceAccountName 'jenkins' 
+                    serviceAccount 'jenkins' 
                     containerTemplate {
                         name 'helm'                          // Container name
                         image 'quangtp/custom-jenkins:latest' // Image chứa helm + kubectl
