@@ -50,7 +50,6 @@ pipeline {
             agent {
                 kubernetes {
                     cloud "${K8S_CLOUD_NAME}" // Tên cloud Kubernetes trong Jenkins
-                    label "${K8S_AGENT_LABEL}"
                     serviceAccount 'jenkins' 
                     containerTemplate {
                         name 'helm'                          // Container name
