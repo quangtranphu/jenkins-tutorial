@@ -14,25 +14,17 @@ git add --all
 git commit -m "first attempt to deploy the model"
 git push origin your_branch
 
-kubectl create ns model-serving
-kubectl create sa jenkins -n model-serving
-
-kubectl create clusterrolebinding model-serving-admin-binding \
-  --clusterrole=admin \
-  --serviceaccount=model-serving:jenkins \
-  --namespace=model-serving
-
-kubectl create clusterrolebinding anonymous-admin-binding \
-  --clusterrole=admin \
-  --user=system:anonymous \
-  --namespace=model-serving
-
-kubectl create secret generic jenkins-token   --from-literal=token=$(openssl rand -hex 16)   -n model-serving
-
-kubectl patch serviceaccount jenkins   -n model-serving   -p '{"secrets":[{"name":"jenkins-token"}]}'
+# Connect to GKE
+gcloud container clusters get-credentials inner-replica-469607-h9-new-gke --zone europe-west3-a --project inner-replica-469607-h9
 
 kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 --decode > ca.crt
 
-kubectl get secret jenkins-token -n model-serving -o jsonpath='{.data.token}' | base64 --decode
+kubectl create secret generic jenkins-sa-secret \
+  --from-literal=token=$(kubectl create token jenkins -n model-serving) \
+  --from-file=ca.crt=ca.crt \
+  -n model-serving
 
+kubectl get secret jenkins-sa-secret -n model-serving -o jsonpath='{.data.token}' | base64 --decode
+
+# kubectl create secret generic jenkins-token   --from-literal=token=$(openssl rand -hex 16)   -n model-serving
 ```
