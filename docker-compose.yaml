@@ -16,6 +16,7 @@ services:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jcasc:/var/jenkins_home/casc_configs
+      - /home/jenkins/.kube/config:/var/jenkins_home/.kube/config:ro  # mount kubeconfig
       - ./ca.crt:/var/jenkins_home/certs/ca.crt:ro   # <- mount CA file
     env_file:
       - .env 
@@ -28,6 +29,7 @@ services:
       #   -DKUBERNETES_AUTH_TRYKUBECONFIG=false
       #   -DKUBERNETES_AUTH_TRYSERVICEACCOUNT=false
       CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
+      KUBECONFIG: /var/jenkins_home/.kube/config
 
 volumes:
   jenkins_home:

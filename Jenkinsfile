@@ -69,8 +69,8 @@ pipeline {
                                 --namespace ${nameSpace} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
-                                --set image.pullPolicy=${pullPolicy} \
-                                --kube-context=${context}
+                                --set image.pullPolicy=${pullPolicy}
+                                
                         """
                         sh "kubectl rollout restart deployment ${releaseName} -n ${namespace}"
                     }
