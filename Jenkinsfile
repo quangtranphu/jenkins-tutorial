@@ -13,8 +13,11 @@ pipeline {
         registryCredential = 'dockerhub'
         nameSpace = 'model-serving'
         helmChartPath = './helm-charts/hpp'   
+        releaseName='hpp'
         pullPolicy = 'Always'
         context='inner-replica-469607-h9-new-gke'
+        K8S_CLOUD_NAME='quangtp-cluster-1'
+        K8S_AGENT_LABEL='k8s-agent'
     }
 
     stages {
@@ -63,14 +66,14 @@ pipeline {
                     script {
                         // Upgrade/install Helm release
                         sh """
-                            helm upgrade --install hpp ./helm-charts/hpp \
+                            helm upgrade --install ${releaseName} ${helmChartPath} \
                                 --namespace ${nameSpace} \
                                 --set image.repository=${registry} \
                                 --set image.tag=${BUILD_NUMBER} \
                                 --set image.pullPolicy=${pullPolicy} \
                                 --kube-context=${context}
                         """
-                        sh "kubectl rollout restart deployment hpp -n ${namespace}"
+                        sh "kubectl rollout restart deployment ${releaseName} -n ${namespace}"
                     }
                 }
             }
