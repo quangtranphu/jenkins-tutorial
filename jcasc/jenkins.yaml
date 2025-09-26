@@ -11,6 +11,7 @@ jenkins:
         skipTlsVerify: false
         serverCertificate: ${readFile:/var/jenkins_home/certs/ca.crt}
         credentialsId: "${K8S_CRED_ID}"
+        webSocket: true
         # templates:
         #   - name: "${K8S_AGENT_LABEL}"
         #     label: "${K8S_AGENT_LABEL}"

@@ -15,7 +15,7 @@ pipeline {
         helmChartPath = './helm-charts/hpp'   
         releaseName='hpp'
         pullPolicy = 'Always'
-        context='inner-replica-469607-h9-new-gke'
+        context='gke_inner-replica-469607-h9_europe-west3-a_inner-replica-469607-h9-new-gke'
         K8S_CLOUD_NAME='quangtp-cluster-1'
         K8S_AGENT_LABEL='k8s-agent'
     }
